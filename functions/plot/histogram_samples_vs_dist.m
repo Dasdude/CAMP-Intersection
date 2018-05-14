@@ -34,6 +34,33 @@ function [outputArg1,outputArg2] = histogram_samples_vs_dist(samples,dist_name,p
         legend('Truncated Nakagami','Estimated Nakagami','Field Samples')
         title([pre_title,' Log Nakagami PER: ',num2str(per),' Alpha: ',num2str(params(1)),' Omega: ',num2str(params(2))])
     end
+    if strcmpi(dist_name,'lognormal')
+        samples_nak = randn(1,total_samples);
+        samples_nak = (samples_nak*params(2))+params(1)
+%         samples_nak = samples_nak{1};
+        samples_nak_log = linear2dbm(samples_nak);
+        
+        
+        pd = makedist('normal','mu',params(1),'sigma',params(2));
+        tr_val = icdf(pd,per);
+        s_nak_tr = samples_nak(samples_nak>tr_val);
+        s_nak_tr_log = linear2dbm(s_nak_tr);
+        samples_log = linear2dbm(samples);
+        binEdges = [-150:70];
+        nak_hist = histogram(samples_nak_log,binEdges,'FaceColor','b');
+%         binEdges = nak_hist.BinEdges;
+        
+        hold on
+        
+
+        s_nak_tr_hist  = histogram(s_nak_tr_log,binEdges,'FaceColor','g','FaceAlpha',.5);
+        est_nak_hist = histogram(samples_log,binEdges,'FaceColor','r','FaceAlpha',.5);
+
+        box off
+        axis tight
+        legend('Truncated Nakagami','Estimated Nakagami','Field Samples')
+        title([pre_title,' Log Nakagami PER: ',num2str(per),' Alpha: ',num2str(params(1)),' Omega: ',num2str(params(2))])
+    end
     if strcmpi(dist_name,'nakagami')
         samples_nak = nakagami_generator([params(1),params(2),1],total_samples);
         samples_nak = samples_nak{1};

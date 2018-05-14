@@ -5,11 +5,11 @@ function [params,alphas] = two_ray_dif_pathloss(pathloss_emp,Tx_height,Rx_height
     params = zeros(max_distance,3);
     w = max_window_distance;
     alpha=2.4;
-    epsilon = 1;
+    epsilon = 1.1;
     alphas = 0;
     tx_target = Tx_height;
     alpha_target=alpha;
-    epsilon_target=epsilon;
+%     epsilon_target=epsilon;
     for i = 1:w:(max_distance-w)
         
         
@@ -39,11 +39,11 @@ function [params,alphas] = two_ray_dif_pathloss(pathloss_emp,Tx_height,Rx_height
                 
                     %% FOR STEVE COMMENTed
                 [alpha_target,alphas] = pathloss_dif_loss_find_alpha(i,i+w,pathloss_emp,epsilon_target,tx_target,tx_target,lambda,same_fade_window);          
-%                  loss_handle = @(x) pathloss_dif_loss(i,i+w,pathloss_emp,alpha_target,x,tx_target,tx_target,lambda,same_fade_window,0);
-%                 options = optimoptions(@fmincon,'Display','off','Algorithm','interior-point','MaxFunctionEvaluations',10000);
-%                 [epsilon_target,loss_val]=fmincon(loss_handle,[epsilon_target],[],[],[],[],1,inf,[],options);
+                 loss_handle = @(x) pathloss_dif_loss(i,i+w,pathloss_emp,alpha_target,x,tx_target,tx_target,lambda,same_fade_window,0);
+                options = optimoptions(@fmincon,'Display','off','Algorithm','interior-point','MaxFunctionEvaluations',10000);
+                [epsilon_target,loss_val]=fmincon(loss_handle,[epsilon_target],[],[],[],[],1,inf,[],options);
 
-%                 fprintf('d1:%d,d2:%d  loss:%d epsilon:%d alpha:%d tx_height:%d \n',i,i+w,loss_val,epsilon_target,alpha_target,tx_target)
+                fprintf('d1:%d,d2:%d  loss:%d epsilon:%d alpha:%d tx_height:%d \n',i,i+w,loss_val,epsilon_target,alpha_target,tx_target)
                
             end
             params(i:i+w-1,:) = repmat([alpha_target,epsilon_target,tx_target],[w,1]);

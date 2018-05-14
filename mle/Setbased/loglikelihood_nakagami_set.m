@@ -1,6 +1,7 @@
 function [loss] = loglikelihood_nakagami_set(params_mu_omega,data,per_rate,current_index,min_samples_per_cell)
 %LOGLIKELIHOOD Summary of this function goes here
 pdf_nak_estimated = makedist('Nakagami','mu',params_mu_omega(1),'omega',params_mu_omega(2));
+% pdf_nak_estimated = makedist('lognakagami','mu',params_mu_omega(1),'sigma',params_mu_omega(2));
 ll_list = zeros(1,length(data));
 samples_per_cell = funoncellarray1input(data,@length);
 samples_per_cell(isnan(samples_per_cell))=0;
@@ -17,28 +18,31 @@ for i =1:length(data)
     end
     data_scaled =data{i};
     current_per = per_rate(i);
-    if length(data_center)>std_min_samples && length(data_scaled)>std_min_samples
-        if current_per<per_center
-            data_percentile = (per_center - current_per)*(1-current_per);
-            data_scaled_thresh = prctile(data_scaled,data_percentile*100);
-            data_scaled_prctile = data_scaled(data_scaled>data_scaled_thresh);
-            data_scaled = data_scaled*std(data_center)./std(data_scaled_prctile);
-
-        elseif current_per>per_center
-            data_percentile = (current_per-per_center)*(1-per_center);
-            data_scaled_thresh = prctile(data_center,data_percentile*100);
-            data_center_prctile = data_center(data_center>data_scaled_thresh);
-            data_scaled = data_scaled*std(data_center_prctile)./std(data_scaled);
-        end
-    end
+%     if length(data_center)>std_min_samples && length(data_scaled)>std_min_samples
+%         if current_per<per_center
+%             data_percentile = (per_center - current_per)*(1-current_per);
+%             data_scaled_thresh = prctile(data_scaled,data_percentile*100);
+%             data_scaled_prctile = data_scaled(data_scaled>data_scaled_thresh);
+%             data_scaled = data_scaled*std(data_center)./std(data_scaled_prctile);
+% 
+%         elseif current_per>per_center
+%             data_percentile = (current_per-per_center)*(1-per_center);
+%             data_scaled_thresh = prctile(data_center,data_percentile*100);
+%             data_center_prctile = data_center(data_center>data_scaled_thresh);
+%             data_scaled = data_scaled*std(data_center_prctile)./std(data_scaled);
+%         end
+%     end
     model_pdf_trunc_val = icdf(pdf_nak_estimated,per_rate(i));
     model_pdf_samples = pdf(pdf_nak_estimated,data_scaled);
     model_pdf_samples = model_pdf_samples*(1/(1-per_rate(i)));
     model_pdf_samples(model_pdf_samples<eps)=eps;
     model_pdf_samples(data_scaled<model_pdf_trunc_val)=1e-200;
     red_data = data_scaled(data_scaled<model_pdf_trunc_val);
+%     mle
     if per_rate(i)~=0
         distance_loss = sum(((log(red_data)-log(model_pdf_trunc_val))*length(red_data)./length(data)).^2);
+        distance_loss = sum(abs(log(red_data)-log(model_pdf_trunc_val)).^5);
+%         distance_loss = 0;
     else
         distance_loss=0;
     end

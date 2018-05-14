@@ -10,7 +10,11 @@ if length(data{current_index})<10
     params = params_mu_omega_init;
     loss_val = 0;
 else
+%     b = @(m,o)truncate(makedist('Nakagami',m,o),icdf(makedist('Nakagami',m,o),.5),inf)
+%     params = mle(data{1},'pdf',@(x,m,o)naktruncpdf(x,m,o,.2),'start',params_mu_omega_init,'LowerBound',[.5,0]);
     [params,loss_val]=fmincon(fun,params_mu_omega_init,[],[],[],[],[max(mu_lower_bound,.5),eps],[10,10],[],options);
+%     loss_val =0
+%     params
 end
 % end
 end

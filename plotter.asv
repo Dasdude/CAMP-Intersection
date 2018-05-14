@@ -14,8 +14,8 @@ opposite_med_up = 40;
 
 hov_include = 0;
 
- IX_EAST = {'South','East'};
-    IX_WEST = {'North','West'};
+ IX_EAST = {'SOUTH','East'};
+    IX_WEST = {'N','West'};
     IX_SOUTH = {'InterX','South'};
     IX_NORTH = {'InterX','North'};
     MX_EAST = {'MidX','East'};
@@ -31,18 +31,17 @@ parameter_path = [parameter_folder,'/Parameters.mat'];
 %% Load Params
 load(parameter_path);
 %% Parameters
-d_max = 400;
+d_max = 800;
 TRUNCATION_VALUE=-94;
 LIGHT_SPEED=3*10^8;
 lambda=LIGHT_SPEED/CARRIER_FREQ;
 %% Dataset prepare
 display('Data Prepare Phase')
-% file_string = sprintf('Dataset/%s_Rx_at_%sLeg.csv',mode{1},mode{2});
-file_string = sprintf('Dataset/Ehsan/%s %s.csv',mode{1},mode{2});
+file_string = sprintf('Dataset/%s_Rx_at_%sLeg.csv',mode{1},mode{2});
     file_name_string = sprintf('%s/%s %s',experiment_name,mode{1},mode{2});
     
 csv_data = readtable(file_string,'ReadVariableNames',true);
-dataset_mat_dirty = [csv_data.TxDistance2Center+csv_data.RxDistance2Center,csv_data.RSS];
+dataset_mat_dirty = [csv_data.TxRxDistance,csv_data.RSS];
 dataset_mat_dirty(dataset_mat_dirty(:,2)>300,2) = -999;
 any(isnan(dataset_mat_dirty))
 
@@ -57,8 +56,7 @@ data_dbm_mean = funoncellarray1input(data_dbm_cell,@mean);
 data_dbm_std = funoncellarray1input(data_dbm_cell,@std);
 
 %% Pathloss
-% pathloss = pathloss_gen_2ray(TX_HEIGHT,RX_HEIGHT,EPSILON,ALPHA,lambda,d_max);
-pathloss = 1.3*(20*log10(1:d_max)+20*log10(CARRIER_FREQ)+20*log10(4*pi/LIGHT_SPEED));
+pathloss = pathloss_gen_2ray(TX_HEIGHT,RX_HEIGHT,EPSILON,ALPHA,lambda,d_max);
 %% Extract Fading
 data_fading_dbm = extract_fading(data_dbm_cell,pathloss,TX_POWER);
 %% Generate Data
@@ -90,15 +88,15 @@ figure;plot(loss_vals);title([minimal_experiment_name,'loss']);grid on;saveas(gc
 figure;plot(fading_params(:,1));title([minimal_experiment_name,'Mu - Distance']);grid on;xlabel('Distance (m)');ylabel('Mu Value');saveas(gcf,['Plots/',file_name_string,'/','mu_distance.png']);
 figure;plot(fading_params(:,2));title([minimal_experiment_name,'Omega - Distance']);grid on;xlabel('Distance (m)');ylabel('Omega Value');saveas(gcf,['Plots/',file_name_string,'/','Omega_distance.png']);
 %% Plot Normalized Likelihood
-% ll_fun_handle = @(x)loglikelihood_samples(x{1},'lognakagami',x{2},x{3});
-% fading_trunc_val_dbm = -94+pathloss-TX_POWER;
-% tmp_input_cell_array = {data_fading_dbm,fading_params,-inf*ones(length(generated_fading_dbm),1)};
-% ll_fading_dbm = funonarray(ll_fun_handle,tmp_input_cell_array);
-% tmp_input_cell_array = {data_fading_dbm,fading_params,fading_trunc_val_dbm'};
-% ll_fading_dbm_truncated = funonarray(ll_fun_handle,tmp_input_cell_array);
-% % Plot
-% figure;plot(ll_fading_dbm);hold on ;plot(ll_fading_dbm_truncated);grid on;title([minimal_experiment_name,'Log Likelihood RSSI - Distance']);legend('Full Distribution','Truncated Distribution');saveas(gcf,['Plots/',file_name_string,'/','LL RSSI.png']);
-% %% KS-Test
-% h = funoncellarray2input(generated_rssi_dbm_truncated,data_dbm_cell,@(x,y)kstest2(x,y,'Alpha',.01));
-% figure;plot(h);title('KS-Test');xlabel('Distance (m)');ylim([-1,2]);ylabel('Null Hyphotesis State');grid on;saveas(gcf,['Plots/',file_name_string,'/','KS-Test.png']);
+ll_fun_handle = @(x)loglikelihood_samples(x{1},'lognakagami',x{2},x{3});
+fading_trunc_val_dbm = -94+pathloss-TX_POWER;
+tmp_input_cell_array = {data_fading_dbm,fading_params,-inf*ones(length(generated_fading_dbm),1)};
+ll_fading_dbm = funonarray(ll_fun_handle,tmp_input_cell_array);
+tmp_input_cell_array = {data_fading_dbm,fading_params,fading_trunc_val_dbm'};
+ll_fading_dbm_truncated = funonarray(ll_fun_handle,tmp_input_cell_array);
+% Plot
+figure;plot(ll_fading_dbm);hold on ;plot(ll_fading_dbm_truncated);grid on;title([minimal_experiment_name,'Log Likelihood RSSI - Distance']);legend('Full Distribution','Truncated Distribution');saveas(gcf,['Plots/',file_name_string,'/','LL RSSI.png']);
+%% KS-Test
+h = funoncellarray2input(generated_rssi_dbm_truncated,data_dbm_cell,@(x,y)kstest2(x,y,'Alpha',.01));
+figure;plot(h);title('KS-Test');xlabel('Distance (m)');ylim([-1,2]);ylabel('Null Hyphotesis State');grid on;saveas(gcf,['Plots/',file_name_string,'/','KS-Test.png']);
 end
