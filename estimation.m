@@ -4,9 +4,9 @@ close all
 clear
 axis tight
 'Correct Project'
-experiment_name = 'Perpendicular3Man';
+experiment_name = 'losnlos';
 addpath(genpath('.'))
-for mode_index = 1:3
+for mode_index = 1:1
     clearvars -except mode_index experiment_name
     close all
     %% Constant Variables
@@ -17,17 +17,17 @@ for mode_index = 1:3
     opposite_low_up = 15;
     opposite_med_up = 40;
     hov = 0;
-    IX_EAST = {'North','West'};
-    IX_WEST = {'South','East'};
-    IX_SOUTH = {'NorthEast','SouthWest'};
-    IX_NORTH = {'InterX','North'};
-    MX_EAST = {'MidX','East'};
-    MX_SOUTH = {'MidX','South'};
-    mode_list = {IX_EAST,IX_WEST,IX_SOUTH,IX_NORTH,MX_EAST,MX_SOUTH};
+    IX_EAST = {'los'};
+    IX_WEST = {'nlos'};
+%     IX_SOUTH = {'NorthEast','SouthWest'};
+%     IX_NORTH = {'InterX','North'};
+%     MX_EAST = {'MidX','East'};
+%     MX_SOUTH = {'MidX','South'};
+    mode_list = {IX_EAST,IX_WEST};
     % Dataset variables
     d_min = 1;
     d_max = 400;
-    xticks(0:10:d_max)
+    
     % Model Variables
     FADING_BIN_SIZE = 1;
     TX_POWER = 17;
@@ -48,14 +48,16 @@ for mode_index = 1:3
     %% File Preperation
     mode = mode_list{mode_index};
 %     file_string = ['Seperated DensityPER/',mode{1},' ',mode{2},'.csv'];
-    file_string = sprintf('Dataset/Ehsan/%s %s.csv',mode{1},mode{2});
-    file_name_string = sprintf('%s/%s %s',experiment_name,mode{1},mode{2});
+    file_string = sprintf('Dataset/Ehsan/%s.csv',mode{1});
+    file_name_string = sprintf('%s/%s',experiment_name,mode{1});
     mkdir(['Plots/',file_name_string]);
     %% Dataset prepare
     display('Data Prepare Phase')
     input  = file_string;
     csv_data = readtable(input,'ReadVariableNames',true);
-    csv_data = csv_data(strcmp(csv_data.LinkType,'NLOS_Perpendicular'),:);
+    d_max = floor(max(csv_data.TxRxDistance));
+    xticks(0:10:d_max)
+%     csv_data = csv_data(strcmp(csv_data.LinkType,'NLOS_Perpendicular'),:);
     dataset_mat_dirty = [csv_data.TxRxDistance,csv_data.RSS];
 %     dataset_mat_dirty = [csv_data.RxDistance2Center+csv_data.TxDistance2Center,csv_data.RSS];
     dataset_mat_dirty(dataset_mat_dirty(:,2)>300,2) = -110;

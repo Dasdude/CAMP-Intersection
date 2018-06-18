@@ -36,7 +36,7 @@ for i =1:length(data)
     model_pdf_samples = pdf(pdf_nak_estimated,data_scaled);
     model_pdf_samples = model_pdf_samples*(1/(1-per_rate(i)));
     model_pdf_samples(model_pdf_samples<eps)=eps;
-    model_pdf_samples(data_scaled<model_pdf_trunc_val)=1e-200;
+    model_pdf_samples(data_scaled<model_pdf_trunc_val)=eps;
     red_data = data_scaled(data_scaled<model_pdf_trunc_val);
 %     mle
     if per_rate(i)~=0

@@ -4,7 +4,7 @@ clear
 addpath(genpath('.'))
 %% File Names
 mode_index =2;
-for mode_index = 1:2
+for mode_index = 2:2
     
 same_low_up = 15;
 same_med_up = 40;
@@ -14,18 +14,18 @@ opposite_med_up = 40;
 
 hov_include = 0;
 
- IX_EAST = {'South','East'};
-    IX_WEST = {'North','West'};
+ IX_EAST = {'los'};
+    IX_WEST = {'nlos'};
     IX_SOUTH = {'InterX','South'};
     IX_NORTH = {'InterX','North'};
     MX_EAST = {'MidX','East'};
     MX_SOUTH = {'MidX','South'};
-    mode_list = {IX_EAST,IX_WEST,IX_SOUTH,IX_NORTH,MX_EAST,MX_SOUTH};
+    mode_list = {IX_EAST,IX_WEST};
 mode = mode_list{mode_index};
-experiment_name = 'Perpendicular3Man';
-minimal_experiment_name = [mode{1},' Dir ',mode{2},' Density '];
+experiment_name = 'losnlos';
+minimal_experiment_name = [mode{1}];
 % mode_name = [mode{1},' Direction ',mode{2},' Density ',num2str(mode{3}),' to ',num2str(mode{4})];
- mode_name = sprintf('%s %s',mode{1},mode{2});
+ mode_name = sprintf('%s',mode{1});
 parameter_folder = ['Plots/',experiment_name,'/',mode_name,'/Results'];
 parameter_path = [parameter_folder,'/Parameters.mat'];
 %% Load Params
@@ -38,11 +38,11 @@ lambda=LIGHT_SPEED/CARRIER_FREQ;
 %% Dataset prepare
 display('Data Prepare Phase')
 % file_string = sprintf('Dataset/%s_Rx_at_%sLeg.csv',mode{1},mode{2});
-file_string = sprintf('Dataset/Ehsan/%s %s.csv',mode{1},mode{2});
-    file_name_string = sprintf('%s/%s %s',experiment_name,mode{1},mode{2});
+file_string = sprintf('Dataset/Ehsan/%s.csv',mode{1});
+    file_name_string = sprintf('%s/%s',experiment_name,mode{1});
     
 csv_data = readtable(file_string,'ReadVariableNames',true);
-dataset_mat_dirty = [csv_data.TxDistance2Center+csv_data.RxDistance2Center,csv_data.RSS];
+dataset_mat_dirty = [csv_data.TxRxDistance,csv_data.RSS];
 dataset_mat_dirty(dataset_mat_dirty(:,2)>300,2) = -999;
 any(isnan(dataset_mat_dirty))
 
