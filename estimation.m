@@ -4,7 +4,7 @@ close all
 clear
 axis tight
 'Correct Project'
-experiment_name = 'Perpendicular3Man';
+experiment_name = 'AUG7';
 addpath(genpath('.'))
 for mode_index = 1:3
     clearvars -except mode_index experiment_name
@@ -17,20 +17,21 @@ for mode_index = 1:3
     opposite_low_up = 15;
     opposite_med_up = 40;
     hov = 0;
-    IX_EAST = {'North','West'};
-    IX_WEST = {'South','East'};
-    IX_SOUTH = {'NorthEast','SouthWest'};
-    IX_NORTH = {'InterX','North'};
-    MX_EAST = {'MidX','East'};
-    MX_SOUTH = {'MidX','South'};
-    mode_list = {IX_EAST,IX_WEST,IX_SOUTH,IX_NORTH,MX_EAST,MX_SOUTH};
+    SAME_LEG = {'same_leg'};
+    DIF_LEG_LOS = {'dif_leg_los'};
+    DIF_LEG_NLOS = {'dif_leg_nlos'};
+%     IX_SOUTH = {'NorthEast','SouthWest'};
+%     IX_NORTH = {'InterX','North'};
+%     MX_EAST = {'MidX','East'};
+%     MX_SOUTH = {'MidX','South'};
+    mode_list = {SAME_LEG,DIF_LEG_LOS,DIF_LEG_NLOS};
     % Dataset variables
     d_min = 1;
     d_max = 400;
-    xticks(0:10:d_max)
+    
     % Model Variables
     FADING_BIN_SIZE = 1;
-    TX_POWER = 17;
+    TX_POWER = 14;
     CARRIER_FREQ=5.89*10^9;
     TX_HEIGHT = 1.4787;
     RX_HEIGHT = TX_HEIGHT;
@@ -47,15 +48,16 @@ for mode_index = 1:3
     use_mean_as_pathloss = 1;
     %% File Preperation
     mode = mode_list{mode_index};
-%     file_string = ['Seperated DensityPER/',mode{1},' ',mode{2},'.csv'];
-    file_string = sprintf('Dataset/Ehsan/%s %s.csv',mode{1},mode{2});
-    file_name_string = sprintf('%s/%s %s',experiment_name,mode{1},mode{2});
+    file_string = sprintf('Dataset/Ehsan/%s.csv',mode{1});
+    file_name_string = sprintf('%s/%s',experiment_name,mode{1});
     mkdir(['Plots/',file_name_string]);
     %% Dataset prepare
     display('Data Prepare Phase')
     input  = file_string;
     csv_data = readtable(input,'ReadVariableNames',true);
-    csv_data = csv_data(strcmp(csv_data.LinkType,'NLOS_Perpendicular'),:);
+    d_max = floor(prctile(csv_data.TxRxDistance,90));
+    xticks(0:10:d_max)
+%     csv_data = csv_data(strcmp(csv_data.LinkType,'NLOS_Perpendicular'),:);
     dataset_mat_dirty = [csv_data.TxRxDistance,csv_data.RSS];
 %     dataset_mat_dirty = [csv_data.RxDistance2Center+csv_data.TxDistance2Center,csv_data.RSS];
     dataset_mat_dirty(dataset_mat_dirty(:,2)>300,2) = -110;

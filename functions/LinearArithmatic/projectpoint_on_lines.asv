@@ -1,0 +1,7 @@
+function [ projections ] = projectpoint_on_lines( m,b,x )
+%PROJECTPOINT_ON_LINES m  = 
+%   Detailed explanation goes here
+y = 
+
+end
+

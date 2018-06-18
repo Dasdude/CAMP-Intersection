@@ -1,112 +1,41 @@
-function [outputArg1,outputArg2] = histogram_samples_vs_dist(samples,dist_name,params,total_samples,per,pre_title)
+function [outputArg1,outputArg2] = histogram_samples_vs_dist(samples_linear,dist_obj,params,total_samples,per,title_string)
 %PLOT_SAMPLES_VS_DIST Summary of this function goes here
 %   Detailed explanation goes here
-    figure('Position',[1 1 800 600],'Visible','off');
-    expand_rate = int64((total_samples*(1-per))/length(samples));
-    expand_rate = max(expand_rate,1);
-    if length(samples)~=0
-        total_samples = expand_rate*length(samples)/(1-per);
-    end
-    samples = repmat(samples,expand_rate,1);
-    if strcmpi(dist_name,'lognakagami')
-        samples_nak = nakagami_generator([params(1),params(2),1],total_samples);
-        samples_nak = samples_nak{1};
-        samples_nak_log = linear2dbm(samples_nak);
-        
-        
-        pd = makedist('nakagami','mu',params(1),'omega',params(2));
-        tr_val = icdf(pd,per);
-        s_nak_tr = samples_nak(samples_nak>tr_val);
-        s_nak_tr_log = linear2dbm(s_nak_tr);
-        samples_log = linear2dbm(samples);
-        binEdges = [-150:70];
-        nak_hist = histogram(samples_nak_log,binEdges,'FaceColor','b');
-%         binEdges = nak_hist.BinEdges;
-        
-        hold on
-        
-
-        s_nak_tr_hist  = histogram(s_nak_tr_log,binEdges,'FaceColor','g','FaceAlpha',.5);
-        est_nak_hist = histogram(samples_log,binEdges,'FaceColor','r','FaceAlpha',.5);
-
-        box off
-        axis tight
-        legend('Truncated Nakagami','Estimated Nakagami','Field Samples')
-        title([pre_title,' Log Nakagami PER: ',num2str(per),' Alpha: ',num2str(params(1)),' Omega: ',num2str(params(2))])
-    end
-    if strcmpi(dist_name,'lognormal')
-        samples_nak = randn(1,total_samples);
-        samples_nak = (samples_nak*params(2))+params(1)
-%         samples_nak = samples_nak{1};
-        samples_nak_log = linear2dbm(samples_nak);
-        
-        
-        pd = makedist('normal','mu',params(1),'sigma',params(2));
-        tr_val = icdf(pd,per);
-        s_nak_tr = samples_nak(samples_nak>tr_val);
-        s_nak_tr_log = linear2dbm(s_nak_tr);
-        samples_log = linear2dbm(samples);
-        binEdges = [-150:70];
-        nak_hist = histogram(samples_nak_log,binEdges,'FaceColor','b');
-%         binEdges = nak_hist.BinEdges;
-        
-        hold on
-        
-
-        s_nak_tr_hist  = histogram(s_nak_tr_log,binEdges,'FaceColor','g','FaceAlpha',.5);
-        est_nak_hist = histogram(samples_log,binEdges,'FaceColor','r','FaceAlpha',.5);
-
-        box off
-        axis tight
-        legend('Truncated Nakagami','Estimated Nakagami','Field Samples')
-        title([pre_title,' Log Nakagami PER: ',num2str(per),' Alpha: ',num2str(params(1)),' Omega: ',num2str(params(2))])
-    end
-    if strcmpi(dist_name,'nakagami')
-        samples_nak = nakagami_generator([params(1),params(2),1],total_samples);
-        samples_nak = samples_nak{1};
-        pd = makedist('nakagami','mu',params(1),'omega',params(2));
-        tr_val = icdf(pd,per);
-        s_nak_tr = samples_nak(samples_nak>tr_val);
-        nak_hist = histogram(samples_nak,'FaceColor','b');
-        binEdges = nak_hist.BinEdges;
-        hold on
-
-
-        s_nak_tr_hist  = histogram(s_nak_tr,binEdges,'FaceColor','g','FaceAlpha',.5);
-        est_nak_hist = histogram(samples,binEdges,'FaceColor','r','FaceAlpha',.5);
-
-        box off
-        axis tight
-        legend('Estimated Nakagami','Field Samples','Truncated Nakagami')
-        title([pre_title,' Nakagami PER:',num2str(per),' Alpha: ',num2str(params(1)),' Omega: ',num2str(params(2))])
-    end
-    if strcmpi(dist_name,'normal')
-
-
-        samples_nak = gaussian_generator([params(1),params(2),1],total_samples);
-        samples_nak = samples_nak{1};
-        pd = makedist('normal','mu',params(1),'sigma',params(2));
-        tr_val = icdf(pd,per);
-        s_nak_tr = samples_nak(samples_nak>tr_val);
-        samples_hist = histogram(samples,'FaceColor','r');
-        binEdges = samples_hist.BinEdges;
-        
-        nak_hist = histogram(samples_nak,'FaceColor','b','FaceAlpha',.5);
-        binEdges = [-110,binEdges,nak_hist.BinEdges,-10];
-        binEdges = sort(binEdges);
-        binEdges = -140:1:-10;
-        samples_hist = histogram(samples,binEdges,'FaceColor','r');
-        hold on
-        nak_hist = histogram(samples_nak,binEdges,'FaceColor','b','FaceAlpha',.5);
-        s_nak_tr_hist  = histogram(s_nak_tr,binEdges,'FaceColor','g','FaceAlpha',.5);
-        
-
-        box off
-        axis tight
-        legend('Field Samples','Estimated Gaussian','Truncated Gaussian')
-        title([pre_title,' Gaussian Estimating Distribution with PER:',num2str(per)])
-    end
-    hold off
     
+    expand_rate = int64((total_samples*(1-per))/length(samples_linear));
+    expand_rate = max(expand_rate,1);
+    if length(samples_linear)~=0
+        total_samples = expand_rate*length(samples_linear)/(1-per);
+    end
+    samples_linear = repmat(samples_linear,expand_rate,1);
+    model_dist = dist_obj.dist_handle(params);
+    tr_val = icdf(model_dist,per);
+    tr_val_dbm = linear2dbm(tr_val);
+    gen_samples = model_dist.random(1,total_samples);
+    gen_samples_trunc = gen_samples(gen_samples>tr_val);
+    gen_samples_dbm = linear2dbm(gen_samples);
+    gen_samples_dbm_trunc = gen_samples_dbm(gen_samples_dbm>tr_val_dbm);
+    samples_dbm = linear2dbm(samples_linear);
+    figure('Position',[1 1 800 600],'Visible','off');
+    subplot(2,1,1)
+    binEdges = [-150:70];
+    hold on
+    
+    nak_hist = histogram(gen_samples_dbm,binEdges,'FaceColor','b');
+    binEdges = nak_hist.BinEdges;
+    histogram(gen_samples_dbm_trunc,binEdges,'FaceColor','g','FaceAlpha',.5);
+    histogram(samples_dbm,binEdges,'FaceColor','r','FaceAlpha',.5);
+    legend('Truncated wrt PER','Estimated','Field Samples','Location','northwest');
+    
+    subplot(2,1,2)
+    hold on
+    nak_hist =histogram(gen_samples,'FaceColor','b');
+    binEdges = nak_hist.BinEdges;
+    histogram(gen_samples_trunc,binEdges,'FaceColor','g','FaceAlpha',.5);
+    histogram(samples_linear,binEdges,'FaceColor','r','FaceAlpha',.5);
+    title('Linear Domain')
+    legend('Truncated wrt PER','Estimated','Field Samples','Location','northeast');
+    suptitle(sprintf('%s Estimated vs Field %s',title_string,dist_obj.params_string(params)));
+
 end
 
