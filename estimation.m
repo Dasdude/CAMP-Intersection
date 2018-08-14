@@ -6,7 +6,7 @@ axis tight
 'Correct Project'
 experiment_name = 'AUG7';
 addpath(genpath('.'))
-for mode_index = 1:3
+for mode_index = 1:1
     clearvars -except mode_index experiment_name
     close all
     %% Constant Variables
